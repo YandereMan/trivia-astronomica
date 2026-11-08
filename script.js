@@ -92,4 +92,3 @@ function finish() {
 
 $('begin').onclick = begin;
 $('next').onclick = next;
-$('restart').onclick = () => show('start');
