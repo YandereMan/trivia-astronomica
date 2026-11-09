@@ -1,1 +1,184 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trivia Astronómica | SAG</title><link rel="stylesheet" href="styles.css"></head><body><main class="app"><header><span class="eyebrow">SOCIEDAD ASTRONÓMICA DE GUADALAJARA</span><h1>🌌 Trivia Astronómica</h1><p>¿Qué tanto conoces nuestro universo?</p></header><section id="start" class="panel"><h2>¡Bienvenido al cosmos!</h2><label for="player">Tu nombre o alias</label><input id="player" maxlength="35" placeholder="Explorador espacial" autocomplete="nickname" aria-describedby="alias-help"><p id="alias-help">Responde 3 preguntas: una básica, una intermedia y una avanzada. ¡Con 2 o más aciertos ganas un pin o sticker!</p><button id="begin">Comenzar misión 🚀</button></section><section id="game" class="panel hidden"><div class="topline"><span id="progress"></span><span id="score"></span></div><h2 id="question"></h2><div id="choices" class="choices"></div><p id="feedback" aria-live="polite"></p><button id="next" class="hidden">Siguiente pregunta →</button></section><section id="result" class="panel hidden"><h2 id="result-title"></h2><div class="big-score" id="final-score"></div><p id="result-message"></p><div id="review"></div><p class="fine">Para reclamar un premio, muestra este resultado a los organizadores. La validación del canje se realiza en el stand.</p></section><footer>Explora · Aprende · Descubre ✨</footer></main><script src="questions.js"></script><script src="script.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia Astronómica | Sociedad Astronómica de Guadalajara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <main class="app-container">
+    <header class="app-header">
+      <div class="badge-sag">
+        <span class="icon">✨</span> SOCIEDAD ASTRONÓMICA DE GUADALAJARA
+      </div>
+      <h1>Trivia Astronómica</h1>
+      <p class="subtitle">Explora el cosmos y pon a prueba tus conocimientos universales</p>
+    </header>
+
+    <!-- Pantalla de Inicio -->
+    <section id="start" class="card">
+      <div class="card-header">
+        <div class="space-icon">🚀</div>
+        <h2>¡Bienvenido al Cosmos!</h2>
+        <p>Responde 3 preguntas de dificultad progresiva: Básico, Intermedio y Avanzado.</p>
+      </div>
+
+      <form id="start-form" onsubmit="return false;">
+        <div class="form-group">
+          <label for="player">Nombre o Alias del Explorador</label>
+          <input type="text" id="player" maxlength="35" placeholder="Ej. Carl Sagan" autocomplete="off" required>
+        </div>
+
+        <div class="rules-box">
+          <div class="rule-item">
+            <span class="rule-icon">🏆</span>
+            <span>Con <strong>2 o más aciertos</strong> obtienes un premio oficial en el stand.</span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">⚠️</span>
+            <span><strong>Intento único:</strong> Solo se permite una participación por dispositivo.</span>
+          </div>
+        </div>
+
+        <button type="submit" id="begin" class="btn btn-primary">
+          <span>Comenzar Misión</span>
+          <span class="arrow">→</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Pantalla de Bloqueo por Intento Previo -->
+    <section id="blocked" class="card hidden">
+      <div class="card-header">
+        <div class="space-icon">🔒</div>
+        <h2>Participación Registrada</h2>
+        <p>Ya se ha completado un intento en este dispositivo.</p>
+      </div>
+
+      <div class="blocked-info" id="blocked-info">
+        <!-- Dinámico con JS -->
+      </div>
+
+      <div class="action-buttons">
+        <button id="view-saved-ticket" class="btn btn-primary">Ver mi Ticket de Participación</button>
+      </div>
+      <p class="fine-print mt-3">Para cualquier duda o aclaración, dirígete directamente al personal en el stand de la SAG.</p>
+    </section>
+
+    <!-- Pantalla de Juego -->
+    <section id="game" class="card hidden">
+      <div class="game-topbar">
+        <div class="level-indicator" id="level-badge">
+          <span class="dot"></span>
+          <span id="level-text">Básico</span>
+        </div>
+        <div class="live-score">
+          <span class="star">⭐</span>
+          <span id="score">0 / 3</span>
+        </div>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="question-container">
+        <span class="question-number" id="question-number">Pregunta 1 de 3</span>
+        <h2 id="question" class="question-text"></h2>
+      </div>
+
+      <div id="choices" class="choices-grid"></div>
+
+      <div id="feedback" class="feedback-banner hidden" aria-live="polite"></div>
+
+      <button id="next" class="btn btn-primary hidden">
+        <span id="next-text">Siguiente Pregunta</span>
+        <span class="arrow">→</span>
+      </button>
+    </section>
+
+    <!-- Pantalla de Resultados y Ticket VIP -->
+    <section id="result" class="card hidden">
+      <div class="result-header" id="result-header">
+        <div class="badge-status" id="badge-status"></div>
+        <h2 id="result-title"></h2>
+        <p id="result-subtitle"></p>
+      </div>
+
+      <!-- Ticket Digital VIP de Canje -->
+      <div class="ticket-container" id="ticket">
+        <div class="ticket-head">
+          <div class="ticket-brand">
+            <span class="ticket-logo">🌌</span>
+            <div>
+              <h3>SOCIEDAD ASTRONÓMICA DE GUADALAJARA</h3>
+              <p>PASE DIGITAL DE VALIDACIÓN</p>
+            </div>
+          </div>
+          <div class="ticket-badge-tag" id="ticket-tag">CANJE VÁLIDO</div>
+        </div>
+
+        <div class="ticket-body">
+          <div class="ticket-row">
+            <div class="ticket-col">
+              <span class="label">EXPLORADOR(A)</span>
+              <span class="value" id="ticket-player"></span>
+            </div>
+            <div class="ticket-col">
+              <span class="label">PUNTUACIÓN</span>
+              <span class="value highlight" id="ticket-score"></span>
+            </div>
+          </div>
+
+          <div class="ticket-row">
+            <div class="ticket-col">
+              <span class="label">RANGO ALCANZADO</span>
+              <span class="value" id="ticket-rank"></span>
+            </div>
+            <div class="ticket-col">
+              <span class="label">CÓDIGO ÚNICO</span>
+              <span class="value code" id="ticket-code"></span>
+            </div>
+          </div>
+
+          <div class="ticket-row full">
+            <div class="ticket-col">
+              <span class="label">FECHA Y HORA DE REGISTRO</span>
+              <span class="value small" id="ticket-date"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ticket-footer">
+          <p class="ticket-notice">Muestra esta pantalla al personal del stand de la SAG para validar tu resultado y canjear tu premio.</p>
+        </div>
+      </div>
+
+      <div class="review-section">
+        <h3>Resumen de Respuestas</h3>
+        <div id="review" class="review-list"></div>
+      </div>
+
+      <footer class="card-footer">
+        <p class="fine">El resultado queda registrado en tu dispositivo como comprobante oficial.</p>
+      </footer>
+    </section>
+
+    <footer class="app-footer">
+      <p>Explora · Aprende · Descubre ✨</p>
+      <p class="credits">© Sociedad Astronómica de Guadalajara</p>
+    </footer>
+  </main>
+
+  <script src="questions.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
